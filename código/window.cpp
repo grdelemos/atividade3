@@ -25,9 +25,9 @@ void Window::onEvent(SDL_Event const &event) {
   }
 
   if (event.type == SDL_MOUSEWHEEL) {
-    if (event.wheel.y > 0)
+    if (event.wheel.y > 0 && m_FOV > 15.0f)
       m_FOV -= 1.0f;
-    if (event.wheel.y < 0)
+    if (event.wheel.y < 0 && m_FOV < 70.0f)
       m_FOV += 1.0f;
   }
 
@@ -125,11 +125,6 @@ void Window::onUpdate() {
   yaw += xoffset;
   pitch += yoffset;
 
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
   glm::vec3 direction;
   direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
   direction.y = sin(glm::radians(pitch));
@@ -164,11 +159,13 @@ void Window::onPaint() {
   auto const modelMatrixLoc{
       abcg::glGetUniformLocation(m_program, "modelMatrix")};
   auto const colorLoc{abcg::glGetUniformLocation(m_program, "color")};
+  auto field{abcg::glGetAttribLocation(m_program, "field")};
 
   // Set uniform variables that have the same value for every model
   abcg::glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, &m_viewMatrix[0][0]);
   abcg::glUniformMatrix4fv(projMatrixLoc, 1, GL_FALSE, &m_projMatrix[0][0]);
   abcg::glUniform4f(colorLoc, 1.0f, 1.0f, 1.0f, 1.0f); // White
+  abcg::glVertexAttrib1f(field, m_FOV);
 
   // Render each star
   for (auto &star : m_stars) {
@@ -203,7 +200,7 @@ void Window::onPaint() {
   modelMatrixPlanet =
       glm::rotate(modelMatrixPlanet, m_angle, m_planet.m_rotationAxis);
 
-  abcg::glUniform4f(colorLoc, 1.0f, 0.0f, 0.0f, 1.0f);
+  abcg::glUniform4f(colorLoc, 1.0f, 0.0f, 0.3f, 1.0f);
   // Set uniform variable
   abcg::glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE,
                            &modelMatrixPlanet[0][0]);
